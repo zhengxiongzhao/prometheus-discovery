@@ -11,16 +11,7 @@
 
 ![tensuns-arch](https://raw.githubusercontent.com/starsliao/TenSunS/main/screenshot/tensuns-arch.png)
 
-- **v1.0.0开始支持自定义登录页，登录后你可以在`系统设置`中自定义登录页：[欢迎Show出你的登录页](https://github.com/starsliao/TenSunS/issues/75)。**
-- **如果你觉得本项目还不错，[烦请在这里留下脚印](https://github.com/starsliao/TenSunS/issues/74)，简单登记下，也可以分享您的使用经验与实践，感谢支持！**
-## 🏷目录
-* [🚀概述](#概述)
-* [🌈功能描述](#功能描述)
-* [💾部署说明](#部署说明)
-* [📌更新记录](#更新记录)
-* [🎨截图预览](#截图预览点击查看完整截图)
-* [🥇最佳实践](#最佳实践)
-* [💖特别鸣谢](#特别鸣谢)
+
 
 ## 🦄概述
 >**后羿 - TenSunS**(原ConsulManager)是一个使用Flask+Vue开发，基于Consul的WEB运维平台，弥补了Consul官方UI对Services管理的不足；并且基于Consul的服务发现与键值存储：实现了Prometheus自动发现多云厂商各资源信息；基于Blackbox对站点监控的可视化维护；以及对自建与云上资源的优雅管理与展示。
@@ -61,34 +52,13 @@
 ---
 
 ## 💾部署说明
-#### ♨TenSunS 版本更新只需在`docker-compose.yaml`所在目录执行`docker-compose pull && docker-compose up -d`即可完成更新。
-#### 💥新增基于docker/K8S的一键部署脚本,Consul独立部署脚本,安装脚本统一放置install目录
-##### 基于docker-compose安装
-- [`install/docker-compose/all_install.sh`](https://github.com/starsliao/TenSunS/blob/main/install/docker-compose/all_install.sh)（**推荐**）:
-  1. **前提**服务器需要先安装好**docker和docker-compose** (新版docker自带compose指令可以提供docker-compose的功能)
-  2. **一键安装**：`curl -s https://starsl.cn/static/img/all_install.sh|sudo bash`
-  3. 执行完成后注意检查输出是否有**异常信息**,如果有**iptables**相关的异常可能是docker引起的,可以重启docker(`systemctl restart docker`)后重试。
-  4. 运行该脚本后会使用docker-compose启动TenSunS和Consul,安装路径是:/opt/tensuns
-  5. 脚本运行完成后会有使用提示及自动生成登录密码,**打开浏览器立刻登录TenSunS,开始体验吧!**
-  6. 编辑`docker-compose.yaml`的变量`admin_passwd`的值可以修改登录的密码,修改完成后必须执行`docker-compose up -d`使修改密码生效。
 
-- [`install/docker-compose/consul_install_only.sh`](https://github.com/starsliao/TenSunS/blob/main/install/docker-compose/consul_install_only.sh) 独立的Consul安装脚本
-- [`install/docker-compose/tensuns_install_only.sh`](https://github.com/starsliao/TenSunS/blob/main/install/docker-compose/tensuns_install_only.sh) 独立的TenSunS安装脚本（已经有Consul的用户可以使用这个脚本）
-##### 基于K8S安装
-- [`install/k8s/install.sh`](https://github.com/starsliao/TenSunS/blob/main/install/k8s/install.sh)：
-  1. 运行后需要设置admin用户的密码。
-  2. 脚本执行完成后**只会生成TenSunS的安装yaml文件和Consul的安装yaml文件**，不会做其它操作，需要执行`kubectl apply`命令来完成安装。
-     >TenSunS是无状态的，有一个初始化容器检查consul连接是否成功，所以建议先安装Consul。Consul是StatefulSet，需要先配置好存储（volumeClaimTemplates），默认是华为云自动创建存储的配置例子，请自行参考修改。
-  3. 完成安装后即可使用任意K8S节点IP+31026端口访问，调用的service是tensuns。
-##### 注意
-- 所有安装方式Consul的管理token会自动生成，可以在Consul的配置文件或TenSunS的docker-compose.yaml中查看。
-- 已经部署Consul的用户可以在TenSunS的docker-compose.yaml或者K8S yaml文件的环境变量部分找到:`consul_token`,`consul_url`,并配置上你的Consul信息;环境变量`admin_passwd`是TenSunS登录admin账号的密码。
-- **安装使用中遇到问题，以及问题排查，请参考：[FAQ](https://github.com/starsliao/TenSunS/blob/main/docs/FAQ.md)**
-##### 🎉活动
-- **登录后你可以在`系统设置`中来`自定义登录页`：[欢迎Show出你的登录页](https://github.com/starsliao/TenSunS/issues/75)。**
-- **如果你觉得本项目还不错，[烦请在这里留下脚印](https://github.com/starsliao/TenSunS/issues/74)，简单登记下，也可以分享您的使用经验与实践，感谢支持！**
+```bash
+docker compose up
+```
 
-## 📌[更新记录](https://github.com/starsliao/TenSunS/releases)
+登录地址： http://localhost:1026
+用户名/密码： admin/admin1
 
 ## 🎨截图预览（[点击查看完整截图](https://github.com/starsliao/TenSunS/tree/main/screenshot#%E6%88%AA%E5%9B%BE)）
 

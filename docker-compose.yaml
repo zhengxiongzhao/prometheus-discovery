@@ -1,0 +1,56 @@
+services:
+  consul:
+    image: swr.cn-south-1.myhuaweicloud.com/starsl.cn/consul:latest
+    container_name: consul
+    hostname: consul
+    restart: always
+    ports:
+      - "8500:8500"
+    volumes:
+     # - ./data/consul/data:/consul/data
+     - ./data/consul:/consul/data
+     - ./etc/consul/config:/consul/config
+     - /usr/share/zoneinfo/PRC:/etc/localtime
+    command: "agent"
+    networks:
+      - TenSunS
+
+  flask-consul:
+    # image: swr.cn-south-1.myhuaweicloud.com/starsl.cn/flask-consul:latest
+    container_name: flask-consul
+    build: ./flask-consul/
+    hostname: flask-consul
+    restart: always
+    volumes:
+      - /usr/share/zoneinfo/PRC:/etc/localtime
+    environment:
+      consul_token: 38838D51-91A0-440A-B387-138BC58B2943
+      consul_url: http://consul:8500/v1
+      admin_passwd: admin1
+      log_level: INFO
+    depends_on:
+      - consul
+    networks:
+      - TenSunS
+
+  nginx-consul:
+    # image: swr.cn-south-1.myhuaweicloud.com/starsl.cn/nginx-consul:latest
+    container_name: nginx-consul
+    build: ./vue-consul/
+    hostname: nginx-consul
+    restart: always
+    ports:
+      - "1026:1026"
+    volumes:
+      - /usr/share/zoneinfo/PRC:/etc/localtime
+    depends_on:
+      - flask-consul
+    networks:
+      - TenSunS
+
+networks:
+  TenSunS:
+    name: TenSunS
+    driver: bridge
+    ipam:
+      driver: default

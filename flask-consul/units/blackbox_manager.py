@@ -3,7 +3,7 @@ from config import consul_token,consul_url
 from units.config_log import *
 
 headers = {'X-Consul-Token': consul_token}
-init_module_list = ['http_2xx','http_4xx','tcp_connect','icmp','http200igssl','httpNoRedirect4ssl','http_5xx','http_post_2xx','ssh_banner']
+init_module_list = ['http_2xx','http_3xx','http_4xx','tcp_connect','icmp','http200igssl','httpNoRedirect4ssl','http_5xx','http_post_2xx','ssh_banner']
 def get_all_list(module,company,project,env):
     module = f'and Meta.module=="{module}"' if module != '' else f'and Meta.module != ""'
     company = f'and Meta.company=="{company}"' if company != '' else f'and Meta.company != ""'
@@ -137,6 +137,14 @@ modules:
       no_follow_redirects: false
       preferred_ip_protocol: ip4
       ip_protocol_fallback: false
+
+  http_3xx:
+    prober: http
+    http:
+      preferred_ip_protocol: "ip4"
+      enable_http3: true
+      enable_http2: false
+      valid_http_versions: ["HTTP/3.0"]
 
   # 用于需要检查SSL证书有效性，但是该域名访问后又会重定向到其它域名的情况，这样检查的证书有效期就是重定向后域名的。
   # 如果需要检查源域名信息，需要在blackbox中增加禁止重定向参数。
