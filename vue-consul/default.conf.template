@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    
+    location /api/ {
+        # 使用占位符
+        proxy_pass ${UPSTREAM};
+    }
+    
+    location / {
+        gzip_static on;
+        root   /www/dist;
+    }
+}

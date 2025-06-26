@@ -1,9 +1,15 @@
-FROM registry.cn-shenzhen.aliyuncs.com/starsl/node:14-alpine AS builder
+FROM node:14-buster AS builder
 ADD . /vue
 WORKDIR /vue
 RUN npm install --registry=https://registry.npmmirror.com && npm run build:prod
 
-FROM registry.cn-shenzhen.aliyuncs.com/starsl/nginx:1.24.0-alpine
+FROM nginx:stable-alpine
 WORKDIR /www
-COPY --from=builder /vue/http-ops.conf /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/conf.d/default.conf
+COPY --from=builder /vue/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /vue/dist dist/
+
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 80

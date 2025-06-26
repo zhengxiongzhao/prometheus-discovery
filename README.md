@@ -1,63 +1,73 @@
-<div align="center">
-
-[![StarsL.cn](https://img.shields.io/badge/website-StarsL.cn-orange)](https://starsl.cn)
-[![Commits](https://img.shields.io/github/commit-activity/m/starsliao/TenSunS?color=ffff00)](https://github.com/starsliao/TenSunS/commits/main)
-[![open issues](http://isitmaintained.com/badge/open/starsliao/TenSunS.svg)](https://github.com/starsliao/TenSunS/issues)
-[![Python](https://img.shields.io/badge/python-%3C=v3.10-3776ab)](https://nodejs.org)
-[![Node.js](https://img.shields.io/badge/node.js-%3E=v14-229954)](https://nodejs.org)
-[![GitHub license](https://img.shields.io/badge/license-WTFPL-blueviolet)](https://github.com/starsliao/TenSunS/blob/main/LICENSE)
-[![OSCS Status](https://www.oscs1024.com/platform/badge/starsliao/TenSunS.svg?size=small)](https://www.murphysec.com/dr/Zoyt5g0huRavAtItj2)
-</div>
-
-![tensuns-arch](https://raw.githubusercontent.com/starsliao/TenSunS/main/screenshot/tensuns-arch.png)
-
-
 
 ## 🦄概述
->**后羿 - TenSunS**(原ConsulManager)是一个使用Flask+Vue开发，基于Consul的WEB运维平台，弥补了Consul官方UI对Services管理的不足；并且基于Consul的服务发现与键值存储：实现了Prometheus自动发现多云厂商各资源信息；基于Blackbox对站点监控的可视化维护；以及对自建与云上资源的优雅管理与展示。
 
-## 🌈功能描述
-### 🎡1. Consul管理(比官方更优雅的Consul Web UI)
-- 支持Consul Services的增删改查，可以批量删除Service。
-- 直观的查看每个Services实例的信息，及整体Services的健康状态。
-- 可以便捷的对Services实例的Tags、Meta、健康检查配置管理与查询。
+提供自建主机/站点/MySQL/Redis配置管理、多云资源自动发现同步Prometheus监控以及JumpServer主机同步功能， 基于Consul的Web运维平台。
 
-### 💎2. 自建与云资源监控管理(ECS/RDS/Redis)
->**基于Consul实现Prometheus监控目标的自动发现。**
+>**在原有的 TenSunS 上添加了的 HTTP/3 (QUIC) 支持, 以及动态化配置**
 
-- ✔**当前已支持对接阿里云、腾讯云、华为云、AWS。**
+Blackbox Exporter for HTTP/3 参考:
 
-  - ⭐支持多云ECS/RDS/Redis的**资源、分组、标签**自动同步到Consul并接入到Prometheus自动发现！(并提供云资源信息查询与自定义页面)
-  - ⭐支持多云ECS信息自动同步到**JumpServer**。
-  - ⭐支持多云**账户余额**与云资源**到期日**设置阈值告警通知。
-  - ⭐支持作为Exporter接入Prometheus：Prometheus增加TenSunS的JOB后可抓取云厂商的部分MySQL/Redis指标。(弥补原生Exporter无法获取部分云MySQL/Redis指标的问题)
-- ✔**支持自建主机/MySQL/Redis**接入WEB管理，支持增删改查、批量导入导出，自动同步到Consul并接入到Prometheus监控！
-- ✔提供了按需生成Prometheus配置与ECS/MySQL/Redis告警规则的功能。
-- ✔设计了多个支持同步的各字段展示的Node_Exporter、Mysqld_Exporter、Redis_Exporter Grafana看板。
-
-### 🚀3. 站点与接口监控管理
->**基于Consul + Prometheus + Blackbox_Exporter实现站点的自动发现与监控。**
-
-- 使用Web页面即可对监控目标增删改查，支持站点的分级分组查询管理。
-- 支持对监控目标的批量删除与批量导入，数据实时同步到Consul。
-- 提供了Blackbox的配置、Prometheus的配置以及Prometheus站点监控的告警规则。
-- 设计了一个支持各分级分组字段展示的Blackbox_Exporter Grafana看板。
-
-### 💫4. 高危漏洞采集与实时告警
-- 增加了高危风险漏洞采集与实时告警通知功能。
-- 功能开启即可采集最新30个漏洞列表。
-- 每小时采集一次，发现新漏洞立即推送到群机器人。
-- 支持企微、钉钉、飞书群机器人通知。
+[![Publish Docker image to Docker Hub](https://img.shields.io/badge/Publish%20Docker%20image%20to%20Docker%20Hub-latest-g?logo=docker)](https://hub.docker.com/r/zhengxiongzhao/blackbox-exporter-http3) 
 
 ---
 
 ## 💾部署说明
 
 ```bash
+  prometheus-manager-ui:
+    image: zhengxiongzhao/prometheus-manager-ui:latest
+    restart: always
+    environment:
+      UPSTREAM: http://prometheus-manager-server:2026
+    ports:
+      - "8081:80"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - prometheus-manager-server
+    networks:
+      - pms
+  prometheus-manager-server:
+    image: zhengxiongzhao/prometheus-manager-server:latest
+    restart: always
+    ports:
+      - "2026:2026"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      consul_token: 38838D51-91A0-440A-B387-138BC58B2943
+      consul_url: http://consul:8500/v1
+      admin_passwd: admin1
+      log_level: INFO
+    depends_on:
+      - consul
+    networks:
+      - pms
+  consul:
+    image: consul:1.15.4
+    restart: always
+    ports:
+      - "8500:8500"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data/consul:/consul/data
+      - ./etc/consul/config:/consul/config
+    command: "agent"
+    networks:
+      - pms
+networks:
+  pms:
+    name: pms
+    driver: bridge
+    ipam:
+      driver: default
+```
+
+```bash
 docker compose up
 ```
 
-登录地址： http://localhost:1026
+登录地址： http://localhost:8081
 用户名/密码： admin/admin1
 
 ## 🎨截图预览（[点击查看完整截图](https://github.com/starsliao/TenSunS/tree/main/screenshot#%E6%88%AA%E5%9B%BE)）
@@ -84,44 +94,4 @@ docker compose up
 
 </details>
 
----
-## 🥇最佳实践
-- #### [TenSunS：实践与FAQ](https://github.com/starsliao/TenSunS/tree/main/docs)
-- #### [应用场景1：如何优雅的基于Consul自动同步ECS主机监控](https://github.com/starsliao/TenSunS/blob/main/docs/ECS%E4%B8%BB%E6%9C%BA%E7%9B%91%E6%8E%A7.md)
-- #### [应用场景2：如何优雅的使用Consul管理Blackbox站点监控](https://github.com/starsliao/TenSunS/blob/main/docs/blackbox%E7%AB%99%E7%82%B9%E7%9B%91%E6%8E%A7.md)
-- #### [应用场景3：如何把云主机自动同步到JumpServer](https://github.com/starsliao/TenSunS/blob/main/docs/%E5%A6%82%E4%BD%95%E6%8A%8A%E4%B8%BB%E6%9C%BA%E8%87%AA%E5%8A%A8%E5%90%8C%E6%AD%A5%E5%88%B0JumpServer.md)
-- #### [应用场景4：使用1个mysqld_exporter监控所有的MySQL实例](https://github.com/starsliao/TenSunS/blob/main/docs/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E7%9A%84%E4%BD%BF%E7%94%A8%E4%B8%80%E4%B8%AAmysqld_exporter%E7%9B%91%E6%8E%A7%E6%89%80%E6%9C%89%E7%9A%84MySQL%E5%AE%9E%E4%BE%8B.md)
-- #### [应用场景5：使用1个redis_exporter监控所有的Redis实例](https://github.com/starsliao/TenSunS/blob/main/docs/%E4%BD%BF%E7%94%A8%E4%B8%80%E4%B8%AAredis_exporter%E7%9B%91%E6%8E%A7%E6%89%80%E6%9C%89%E7%9A%84Redis%E5%AE%9E%E4%BE%8B.md)
 
-
-## 💖特别鸣谢
-### 赞赏与关注公众号【**云原生DevOps**】加入交流群（请备注：后羿），获取更多...
-
-**如果看不到图片请点击该链接：[https://starsl.cn/static/img/thanks.png](https://starsl.cn/static/img/thanks.png)**
-![](https://starsl.cn/static/img/thanks.png)
-
----
-
-### 💰赞赏
-##### 🥇榜一大哥：**@浩哥**
-##### 🥈榜二大哥：**@南城阿宇** **@weibw** **@星星**
-##### 🥉榜三大哥：**@新的奇迹** **@李宫俊** **@锋** **@小明SQLBOY** **@Swancavalier** **@烂泥**
-
----
-
-### ✅提交代码
-**[@Yvan](https://github.com/406226161) [@ZZYhho](https://github.com/ZZYhho)** [@dbdocker](https://github.com/dbdocker) [@anatsking](https://github.com/anatsking) [@ylighgh](https://github.com/ylighgh)
-
----
-
-### 🎃提交bug与建议
-@会飞的鱼 [@奈](https://github.com/Wp516781950) @Swancavalier [@Show_Lo](https://github.com/ShowXian) @郑不错 @init @weibw  @Martin [@dong9205](https://github.com/dong9205) @MiracleWong [@dissipator](https://github.com/dissipator) @烂泥 [@SkipperSky](https://github.com/klllmxx)
-
----
-
-### 🏆开源推荐
-[🌉Go-Ldap-Admin: 基于Go+Vue实现的openLDAP后台管理项目](https://github.com/eryajf/go-ldap-admin)
-
----
-
-## 💖感谢伟大的[Flask](https://github.com/pallets/flask)、[VUE](https://github.com/vuejs/vue)、[vue-admin-template](https://github.com/PanJiaChen/vue-admin-template)
