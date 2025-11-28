@@ -12,7 +12,7 @@ Blackbox Exporter for HTTP/3 参考: [![Publish Docker image to Docker Hub](http
 ## 💾部署说明
 
 ```bash
-wget https://github.com/zhengxiongzhao/prometheus-discovery/tree/main/etc.tar.gz && tar zxf etc.tar.gz
+wget https://github.com/zhengxiongzhao/prometheus-discovery/raw/refs/heads/main/etc.tar.gz && tar zxf etc.tar.gz
 wget https://github.com/zhengxiongzhao/prometheus-discovery/tree/main/docker-compose.yaml
 docker compose up
 
@@ -30,13 +30,18 @@ docker compose up
 
 <details><summary>💥点击展开</summary>
 
-### ECS Manager
+### Mananger
+
+#### ECS Manager
 ![](https://raw.githubusercontent.com/zhengxiongzhao/prometheus-discovery/main/screenshot/0.png)
-### Blackbox Manager
+#### Blackbox Manager
 ![](https://raw.githubusercontent.com/zhengxiongzhao/prometheus-discovery/main/screenshot/1.png)
-### Node Exporter Dashboard 
+
+### Dashboard 
 ![](https://raw.githubusercontent.com/zhengxiongzhao/prometheus-discovery/main/screenshot/2.png)
-### Blackbox Exporter Dashboard 
+#### Node Exporter Dashboard 
+![](https://raw.githubusercontent.com/zhengxiongzhao/prometheus-discovery/main/screenshot/4.png)
+#### Blackbox Exporter Dashboard 
 ![](https://raw.githubusercontent.com/zhengxiongzhao/prometheus-discovery/main/screenshot/3.png)
 
 </details>
