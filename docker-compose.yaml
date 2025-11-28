@@ -1,56 +1,107 @@
 services:
-  consul:
-    image: swr.cn-south-1.myhuaweicloud.com/starsl.cn/consul:latest
-    container_name: consul
-    hostname: consul
+  prometheus-manager-ui:
+    image: zhengxiongzhao/prometheus-manager-ui:latest
+    restart: always
+    environment:
+      UPSTREAM: http://prometheus-manager-server:2026
+    ports:
+      - "8081:80"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - prometheus-manager-server
+    networks:
+      - pms
+  prometheus-manager-server:
+    image: zhengxiongzhao/prometheus-manager-server:latest
     restart: always
     ports:
-      - "8500:8500"
+      - "2026:2026"
     volumes:
-     # - ./data/consul/data:/consul/data
-     - ./data/consul:/consul/data
-     - ./etc/consul/config:/consul/config
-     - /usr/share/zoneinfo/PRC:/etc/localtime
-    command: "agent"
-    networks:
-      - TenSunS
-
-  flask-consul:
-    # image: swr.cn-south-1.myhuaweicloud.com/starsl.cn/flask-consul:latest
-    container_name: flask-consul
-    build: ./flask-consul/
-    hostname: flask-consul
-    restart: always
-    volumes:
-      - /usr/share/zoneinfo/PRC:/etc/localtime
+      - /etc/localtime:/etc/localtime:ro
     environment:
       consul_token: 38838D51-91A0-440A-B387-138BC58B2943
       consul_url: http://consul:8500/v1
       admin_passwd: admin1
       log_level: INFO
     depends_on:
-      - consul
+      consul:
+        condition: service_healthy
     networks:
-      - TenSunS
-
-  nginx-consul:
-    # image: swr.cn-south-1.myhuaweicloud.com/starsl.cn/nginx-consul:latest
-    container_name: nginx-consul
-    build: ./vue-consul/
-    hostname: nginx-consul
+      - pms
+  consul:
+    image: consul:1.15.4
     restart: always
     ports:
-      - "1026:1026"
+      - "8500:8500"
     volumes:
-      - /usr/share/zoneinfo/PRC:/etc/localtime
-    depends_on:
-      - flask-consul
+      - /etc/localtime:/etc/localtime:ro
+      - ./data/consul:/consul/data
+      - ./etc/consul:/consul/config
+    command:
+      - agent
+      - -config-file=/consul/config/server.hcl
+    healthcheck:
+      test: ["CMD", "curl", "-H", "X-Consul-Token: 38838D51-91A0-440A-B387-138BC58B2943", "http://localhost:8500/v1/status/leader"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     networks:
-      - TenSunS
+      - pms
+
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    ports:
+      - "8004:9090"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./etc/prometheus:/workspace
+    command:
+      - --config.file=/workspace/prometheus.yml
+      - --enable-feature=exemplar-storage
+      - --storage.tsdb.retention.time=90d
+    depends_on:
+      consul:
+        condition: service_healthy
+    networks:
+      - pms
+
+  blackbox:
+    image: zhengxiongzhao/blackbox-exporter-http3:v0.26.0
+    restart: always
+    command: 
+      - --config.file=/etc/blackbox_exporter/config.yml 
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./etc/prometheus/blackbox.yml:/etc/blackbox_exporter/config.yml
+    depends_on:
+      - prometheus
+    networks:
+      - pms
+
+  grafana:
+    image: grafana/grafana:12.0.1
+    restart: always
+    ports:
+      - "8001:3000"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./etc/grafana/provisioning/dashboards/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./etc/grafana/provisioning/dashboards:/etc/grafana/dashboards
+      - ./etc/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      GF_LOG_LEVEL: error
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - prometheus
+    networks:
+      - pms
 
 networks:
-  TenSunS:
-    name: TenSunS
+  pms:
+    name: pms
     driver: bridge
     ipam:
       driver: default

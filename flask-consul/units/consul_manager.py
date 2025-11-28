@@ -6,10 +6,10 @@ headers = {'X-Consul-Token': consul_token}
 
 def get_consul_ver():
     url = f'{consul_url}/operator/autopilot/state'
-    response = requests.get(url, headers=headers, timeout=2)
+    response = requests.get(url, headers=headers, timeout=15)
     if response.status_code == 404:
         url = f'{consul_url}/operator/autopilot/health'
-        response = requests.get(url, headers=headers, timeout=2)
+        response = requests.get(url, headers=headers, timeout=15)
     response.encoding='utf-8'
     if response.status_code == 200:
         logger.info(f'【consul】请求成功, 认证成功: {consul_url} ')
