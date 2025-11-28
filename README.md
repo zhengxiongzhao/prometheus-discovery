@@ -13,7 +13,7 @@ Blackbox Exporter for HTTP/3 参考: [![Publish Docker image to Docker Hub](http
 
 ```bash
 wget https://github.com/zhengxiongzhao/prometheus-discovery/raw/refs/heads/main/etc.tar.gz && tar zxf etc.tar.gz
-wget https://github.com/zhengxiongzhao/prometheus-discovery/tree/main/docker-compose.yaml
+wget https://github.com/zhengxiongzhao/prometheus-discovery/raw/refs/heads/main/docker-compose.yaml
 docker compose up
 
 管理平台
